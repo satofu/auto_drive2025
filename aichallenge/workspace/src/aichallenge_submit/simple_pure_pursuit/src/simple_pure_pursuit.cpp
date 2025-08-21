@@ -21,6 +21,10 @@ SimplePurePursuit::SimplePurePursuit()
   lookahead_gain_(declare_parameter<float>("lookahead_gain", 1.0)),
   lookahead_min_distance_(declare_parameter<float>("lookahead_min_distance", 1.0)),
   speed_proportional_gain_(declare_parameter<float>("speed_proportional_gain", 1.0)),
+  low_speed_threshold_(declare_parameter<float>("low_speed_threshold", 1.5)),
+  lookahead_gain_low_speed_(declare_parameter<float>("lookahead_gain_low_speed", 0.1)),
+  lookahead_min_distance_low_speed_(declare_parameter<float>("lookahead_min_distance_low_speed", 1.2)),
+  speed_proportional_gain_low_speed_(declare_parameter<float>("speed_proportional_gain_low_speed", 0.8)),
   use_external_target_vel_(declare_parameter<bool>("use_external_target_vel", false)),
   external_target_vel_(declare_parameter<float>("external_target_vel", 0.0)),
   steering_tire_angle_gain_(declare_parameter<float>("steering_tire_angle_gain", 1.0))
@@ -69,17 +73,31 @@ void SimplePurePursuit::onTimer()
   TrajectoryPoint closet_traj_point = trajectory_->points.at(closet_traj_point_idx);
 
   // calc longitudinal speed and acceleration
+  double current_longitudinal_vel = odometry_->twist.twist.linear.x;
   double target_longitudinal_vel =
     use_external_target_vel_ ? external_target_vel_ : closet_traj_point.longitudinal_velocity_mps;
-  double current_longitudinal_vel = odometry_->twist.twist.linear.x;
+  double lookahead_gain = lookahead_gain_;
+  double lookahead_min_distance = lookahead_min_distance_;
+  double speed_proportional_gain = speed_proportional_gain_;
+
+  if (current_longitudinal_vel < low_speed_threshold_) {
+    target_longitudinal_vel = low_speed_threshold_ * 1.05;
+    lookahead_gain = lookahead_gain_low_speed_;
+    lookahead_min_distance = lookahead_min_distance_low_speed_;
+    speed_proportional_gain = speed_proportional_gain_low_speed_;
+    double desired_acc =
+      speed_proportional_gain * (target_longitudinal_vel - current_longitudinal_vel);
+    cmd.longitudinal.acceleration = std::min(desired_acc, 1.0);
+  } else {
+    cmd.longitudinal.acceleration =
+      speed_proportional_gain * (target_longitudinal_vel - current_longitudinal_vel);
+  }
 
   cmd.longitudinal.speed = target_longitudinal_vel;
-  cmd.longitudinal.acceleration =
-    speed_proportional_gain_ * (target_longitudinal_vel - current_longitudinal_vel);
 
   // calc lateral control
   //// calc lookahead distance
-  double lookahead_distance = lookahead_gain_ * target_longitudinal_vel + lookahead_min_distance_;
+  double lookahead_distance = lookahead_gain * target_longitudinal_vel + lookahead_min_distance;
   //// calc center coordinate of rear wheel
   double rear_x = odometry_->pose.pose.position.x -
                   wheel_base_ / 2.0 * std::cos(odometry_->pose.pose.orientation.z);
