@@ -6,6 +6,7 @@
 #include <tf2/utils.h>
 
 #include <algorithm>
+#include <cmath>
 
 namespace simple_pure_pursuit
 {
@@ -124,8 +125,18 @@ void SimplePurePursuit::onTimer()
   // calc steering angle for lateral control
   double alpha = std::atan2(lookahead_point_y - rear_y, lookahead_point_x - rear_x) -
                  tf2::getYaw(odometry_->pose.pose.orientation);
-  cmd.lateral.steering_tire_angle =
-    steering_tire_angle_gain_ * std::atan2(2.0 * wheel_base_ * std::sin(alpha), lookahead_distance);
+  // if target point is behind the vehicle, switch to reverse and flip steering
+  bool target_is_behind = std::abs(alpha) > (M_PI / 2.0);
+  if (target_is_behind) {
+    cmd.longitudinal.speed *= -1.0;
+    cmd.longitudinal.acceleration *= -1.0;
+  }
+  double steer = steering_tire_angle_gain_ *
+                 std::atan2(2.0 * wheel_base_ * std::sin(alpha), lookahead_distance);
+  if (target_is_behind) {
+    steer *= -1.0;
+  }
+  cmd.lateral.steering_tire_angle = steer;
 
   pub_cmd_->publish(cmd);
   cmd.lateral.steering_tire_angle /=  steering_tire_angle_gain_;
