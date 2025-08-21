@@ -48,6 +48,10 @@ class SimplePurePursuit : public rclcpp::Node {
   const double lookahead_gain_;
   const double lookahead_min_distance_;
   const double speed_proportional_gain_;
+  const double low_speed_threshold_;
+  const double lookahead_gain_low_speed_;
+  const double lookahead_min_distance_low_speed_;
+  const double speed_proportional_gain_low_speed_;
   const bool use_external_target_vel_;
   const double external_target_vel_;
   const double steering_tire_angle_gain_;
