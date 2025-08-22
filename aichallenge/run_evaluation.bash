@@ -164,7 +164,7 @@ cleanup() {
 }
 
 move_window() {
-    # Window detection and positioning are skipped in headless mode
+    # Window detection and positioning are intentionally skipped to avoid startup delays
     echo "Skipping window management"
     return 0
 }
