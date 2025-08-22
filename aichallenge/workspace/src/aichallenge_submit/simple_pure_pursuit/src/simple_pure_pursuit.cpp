@@ -28,7 +28,9 @@ SimplePurePursuit::SimplePurePursuit()
   speed_proportional_gain_low_speed_(declare_parameter<float>("speed_proportional_gain_low_speed", 0.8)),
   use_external_target_vel_(declare_parameter<bool>("use_external_target_vel", false)),
   external_target_vel_(declare_parameter<float>("external_target_vel", 0.0)),
-  steering_tire_angle_gain_(declare_parameter<float>("steering_tire_angle_gain", 1.0))
+  steering_tire_angle_gain_(declare_parameter<float>("steering_tire_angle_gain", 1.0)),
+  gnss_to_front_axle_offset_(
+    declare_parameter<float>("gnss_to_front_axle_offset", 0.0))
 {
   start_time_ = get_clock()->now();
   pub_cmd_ = create_publisher<AckermannControlCommand>("output/control_cmd", 1);
@@ -73,8 +75,16 @@ void SimplePurePursuit::onTimer()
     return;
   }
 
+  double yaw = tf2::getYaw(odometry_->pose.pose.orientation);
+  geometry_msgs::msg::Point front_point;
+  front_point.x =
+    odometry_->pose.pose.position.x + gnss_to_front_axle_offset_ * std::cos(yaw);
+  front_point.y =
+    odometry_->pose.pose.position.y + gnss_to_front_axle_offset_ * std::sin(yaw);
+  front_point.z = odometry_->pose.pose.position.z;
+
   size_t closet_traj_point_idx =
-    findNearestIndex(trajectory_->points, odometry_->pose.pose.position);
+    findNearestIndex(trajectory_->points, front_point);
 
   // publish zero command
   AckermannControlCommand cmd = zeroAckermannControlCommand(now);
@@ -109,10 +119,8 @@ void SimplePurePursuit::onTimer()
   //// calc lookahead distance
   double lookahead_distance = lookahead_gain * target_longitudinal_vel + lookahead_min_distance;
   //// calc center coordinate of rear wheel
-  double rear_x = odometry_->pose.pose.position.x -
-                  wheel_base_ / 2.0 * std::cos(odometry_->pose.pose.orientation.z);
-  double rear_y = odometry_->pose.pose.position.y -
-                  wheel_base_ / 2.0 * std::sin(odometry_->pose.pose.orientation.z);
+  double rear_x = front_point.x - wheel_base_ * std::cos(yaw);
+  double rear_y = front_point.y - wheel_base_ * std::sin(yaw);
   //// search lookahead point
   auto lookahead_point_itr = std::find_if(
     trajectory_->points.begin() + closet_traj_point_idx, trajectory_->points.end(),
@@ -132,8 +140,8 @@ void SimplePurePursuit::onTimer()
   pub_lookahead_point_->publish(lookahead_point_msg);
 
   // calc steering angle for lateral control
-  double alpha = std::atan2(lookahead_point_y - rear_y, lookahead_point_x - rear_x) -
-                 tf2::getYaw(odometry_->pose.pose.orientation);
+  double alpha =
+    std::atan2(lookahead_point_y - rear_y, lookahead_point_x - rear_x) - yaw;
   // if target point is behind the vehicle, switch to reverse and flip steering
   bool target_is_behind = std::abs(alpha) > (M_PI / 2.0);
   if (target_is_behind) {
