@@ -28,7 +28,7 @@
       obstacle_threshold: 60
       # object recognition
       use_object_recognition: $(var enable_collision_check)
-      object_recognition_collision_check_margin: $(eval enable_collision_check ? 1.0 : 0.0)
+      object_recognition_collision_check_margin: "$(eval enable_collision_check ? 1.0 : 0.0)"
       # shift path
       enable_shift_parking: true
       pull_over_sampling_num: 4
