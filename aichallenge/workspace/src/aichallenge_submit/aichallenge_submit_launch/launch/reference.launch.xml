@@ -140,6 +140,7 @@
     <param name="lookahead_gain_low_speed" value="0.1"/>
     <param name="lookahead_min_distance_low_speed" value="1.2"/>
     <param name="speed_proportional_gain_low_speed" value="0.8"/>
+    <param name="gnss_to_front_axle_offset" value="1.347"/>
 
     <remap from="input/kinematics" to="/localization/kinematic_state"/>
     <remap from="input/trajectory" to="/planning/scenario_planning/trajectory"/>
