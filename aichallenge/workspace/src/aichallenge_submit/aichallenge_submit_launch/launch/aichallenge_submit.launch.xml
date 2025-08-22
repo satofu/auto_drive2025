@@ -4,6 +4,7 @@
   <arg name="use_sim_time"/>
   <arg name="sensor_model"/>
   <arg name="launch_vehicle_interface"/>
+  <arg name="enable_collision_check" default="true"/>
 
   <log message="The arguments for aichallenge_submit_launch."/>
   <log message=" - simulation: $(var simulation)"/>
@@ -18,6 +19,7 @@
     <arg name="use_sim_time" value="$(var use_sim_time)"/>
     <arg name="simulation" value="$(var simulation)"/>
     <arg name="launch_vehicle_interface" value="$(var launch_vehicle_interface)"/>
+    <arg name="enable_collision_check" value="$(var enable_collision_check)"/>
   </include>
   <!-- TODO remove this -->
   <node pkg="goal_pose_setter" exec="goal_pose_setter_node" name="goal_pose_setter" output="screen">

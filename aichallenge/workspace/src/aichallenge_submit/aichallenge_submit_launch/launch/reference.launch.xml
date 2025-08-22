@@ -7,6 +7,7 @@
   <arg name="map_path" default="$(find-pkg-share aichallenge_submit_launch)/map"/>
   <arg name="vehicle_model" default="racing_kart"  description="vehicle model name"/>
   <arg name="sensor_model" default="racing_kart_sensor_kit" description="sensor model name"/>
+  <arg name="enable_collision_check" default="true"/>
   <!-- Optional parameters -->
   <!-- Map -->
   <arg name="lanelet2_map_file" default="lanelet2_map.osm" description="lanelet2 map file name"/>
