@@ -30,6 +30,7 @@ SimplePurePursuit::SimplePurePursuit()
   external_target_vel_(declare_parameter<float>("external_target_vel", 0.0)),
   steering_tire_angle_gain_(declare_parameter<float>("steering_tire_angle_gain", 1.0))
 {
+  start_time_ = get_clock()->now();
   pub_cmd_ = create_publisher<AckermannControlCommand>("output/control_cmd", 1);
   pub_raw_cmd_ = create_publisher<AckermannControlCommand>("output/raw_control_cmd", 1);
   pub_lookahead_point_ = create_publisher<PointStamped>("/control/debug/lookahead_point", 1);
@@ -59,6 +60,14 @@ AckermannControlCommand zeroAckermannControlCommand(rclcpp::Time stamp)
 
 void SimplePurePursuit::onTimer()
 {
+  rclcpp::Time now = get_clock()->now();
+  if ((now - start_time_) < rclcpp::Duration::from_seconds(5.0)) {
+    auto cmd = zeroAckermannControlCommand(now);
+    pub_cmd_->publish(cmd);
+    pub_raw_cmd_->publish(cmd);
+    return;
+  }
+
   // check data
   if (!subscribeMessageAvailable()) {
     return;
@@ -68,7 +77,7 @@ void SimplePurePursuit::onTimer()
     findNearestIndex(trajectory_->points, odometry_->pose.pose.position);
 
   // publish zero command
-  AckermannControlCommand cmd = zeroAckermannControlCommand(get_clock()->now());
+  AckermannControlCommand cmd = zeroAckermannControlCommand(now);
 
   // get closest trajectory point from current position
   TrajectoryPoint closet_traj_point = trajectory_->points.at(closet_traj_point_idx);
