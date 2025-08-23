@@ -4,3 +4,22 @@
 *.webm
 *.db3
 rosbag2*/
+# === GA artifacts ===
+aichallenge/workspace/src/aichallenge_submit/simple_trajectory_generator/data/simulation_output.csv
+
+# 個体ごとの結果を溜め込む置き場は全部無視
+aichallenge/workspace/src/aichallenge_submit/simple_trajectory_generator/data/ga/data/**
+!aichallenge/workspace/src/aichallenge_submit/simple_trajectory_generator/data/ga/data/.gitkeep
+
+# 各世代サマリCSVも無視（必要なら ! で個別解除）
+aichallenge/workspace/src/aichallenge_submit/simple_trajectory_generator/data/ga/gen_*.csv
+
+# ただし、スクリプト/設定と最良結果は追跡する
+!aichallenge/workspace/src/aichallenge_submit/simple_trajectory_generator/data/ga/ga_optimize.py
+!aichallenge/workspace/src/aichallenge_submit/simple_trajectory_generator/data/ga/ga_settings.json
+!aichallenge/workspace/src/aichallenge_submit/simple_trajectory_generator/data/ga/best_solution.csv
+!aichallenge/workspace/src/aichallenge_submit/simple_trajectory_generator/data/ga/best_offsets.csv
+# refine GA data ignore rules
+aichallenge/workspace/src/aichallenge_submit/simple_trajectory_generator/data/ga/data/*
+!aichallenge/workspace/src/aichallenge_submit/simple_trajectory_generator/data/ga/data/
+!aichallenge/workspace/src/aichallenge_submit/simple_trajectory_generator/data/ga/data/.gitkeep

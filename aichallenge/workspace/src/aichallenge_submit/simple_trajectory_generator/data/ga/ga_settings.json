@@ -1,0 +1,15 @@
+{
+  "fixed_head_rows": 10,
+  "generations": 100,
+  "population_size": 1000,
+  "elite_fraction": 0.2,
+  "parent_fraction": 0.5,
+  "mutation_rate": 0.2,
+  "xyz_step": 0.1,
+  "xyz_bound": 1.0,
+  "speed_step": 0.1,
+  "speed_max": 9.72,
+  "speed_min": 0.0,
+  "emulator_timeout_sec": 300,
+  "random_seed": 42
+}
